@@ -3,7 +3,7 @@
 A simple and interactive task management application with authentication, task categorization, real-time updates, and drag-and-drop functionality.
 
 ## 🚀 Live Demo
-[Live Site](#) (Replace with actual deployed link)
+[Live Site](#) ([Replace with actual deployed link](https://task-manager-13e7e.web.app))
 
 ## 📌 Features
 - User Authentication (Login, Registration, Logout)
