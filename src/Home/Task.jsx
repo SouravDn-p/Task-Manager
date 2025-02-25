@@ -9,8 +9,8 @@ const categories = ["To-Do", "In Progress", "Done"];
 
 const Task = () => {
   const [tasks, setTasks] = useState([]);
-  const [loading, setLoading] = useState(true); // Added loading state
-  const [error, setError] = useState(null); // Added error state
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     fetchTasks();
@@ -20,7 +20,9 @@ const Task = () => {
     setLoading(true);
     setError(null);
     try {
-      const { data } = await axios.get("http://localhost:5000/tasks");
+      const { data } = await axios.get(
+        "https://task-manager-server-side-five.vercel.app/tasks"
+      );
       setTasks(data);
     } catch (err) {
       setError("Failed to fetch tasks. Please try again later.");
@@ -55,10 +57,13 @@ const Task = () => {
     if (!value) return;
 
     try {
-      await axios.post("http://localhost:5000/tasks", {
-        title: value.title,
-        category: value.category,
-      });
+      await axios.post(
+        "https://task-manager-server-side-five.vercel.app/tasks",
+        {
+          title: value.title,
+          category: value.category,
+        }
+      );
       fetchTasks();
     } catch (err) {
       Swal.fire("Error", "Failed to add task. Please try again.", "error");

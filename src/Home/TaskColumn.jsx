@@ -12,10 +12,15 @@ const TaskColumn = ({ category, tasks, fetchTasks }) => {
     accept: ItemTypes.CARD,
     drop: async (item) => {
       if (item.category !== category) {
-        await axios.put(`http://localhost:5000/tasks/${item.id}`, {
-          category,
-        });
-        fetchTasks();
+        try {
+          await axios.put(
+            `https://task-manager-server-side-five.vercel.app/tasks/${item.id}`,
+            { category }
+          );
+          fetchTasks();
+        } catch (error) {
+          console.error("Failed to update task category:", error);
+        }
       }
     },
     collect: (monitor) => ({
@@ -45,7 +50,7 @@ const TaskColumn = ({ category, tasks, fetchTasks }) => {
     >
       <h2 className="font-bold text-lg mb-2">{category}</h2>
       {tasks.map((task) => (
-        <TaskCard key={task._id} task={task} onDelete={fetchTasks} />
+        <TaskCard key={task._id} task={task} fetchTasks={fetchTasks} />
       ))}
     </div>
   );
