@@ -2,25 +2,16 @@ import React, { useContext } from "react";
 import { useDrop } from "react-dnd";
 import { ItemTypes } from "./Constants";
 import TaskCard from "./TaskCard";
-import axios from "axios";
 import { AuthContexts } from "../providers/AuthProvider";
 
-const TaskColumn = ({ category, tasks, fetchTasks }) => {
+const TaskColumn = ({ category, tasks, updateTaskCategory, deleteTask }) => {
   const { theme } = useContext(AuthContexts);
 
   const [{ isOver }, dropRef] = useDrop({
     accept: ItemTypes.CARD,
-    drop: async (item) => {
+    drop: (item) => {
       if (item.category !== category) {
-        try {
-          await axios.put(
-            `https://task-manager-server-side-five.vercel.app/tasks/${item.id}`,
-            { category }
-          );
-          fetchTasks();
-        } catch (error) {
-          console.error("Failed to update task category:", error);
-        }
+        updateTaskCategory(item.id, category);
       }
     },
     collect: (monitor) => ({
@@ -50,7 +41,7 @@ const TaskColumn = ({ category, tasks, fetchTasks }) => {
     >
       <h2 className="font-bold text-lg mb-2">{category}</h2>
       {tasks.map((task) => (
-        <TaskCard key={task._id} task={task} fetchTasks={fetchTasks} />
+        <TaskCard key={task._id} task={task} deleteTask={deleteTask} />
       ))}
     </div>
   );

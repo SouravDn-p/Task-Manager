@@ -2,9 +2,8 @@ import React, { useContext } from "react";
 import { useDrag } from "react-dnd";
 import { ItemTypes } from "./Constants";
 import { AuthContexts } from "../providers/AuthProvider";
-import axios from "axios";
 
-const TaskCard = ({ task, fetchTasks }) => {
+const TaskCard = ({ task, deleteTask }) => {
   const { theme } = useContext(AuthContexts);
 
   const [{ isDragging }, dragRef] = useDrag(() => ({
@@ -14,17 +13,6 @@ const TaskCard = ({ task, fetchTasks }) => {
       isDragging: monitor.isDragging(),
     }),
   }));
-
-  const handleDelete = async () => {
-    try {
-      await axios.delete(
-        `https://task-manager-server-side-five.vercel.app/tasks/${task._id}`
-      );
-      fetchTasks();
-    } catch (error) {
-      console.error("Failed to delete task:", error);
-    }
-  };
 
   return (
     <div
@@ -36,7 +24,7 @@ const TaskCard = ({ task, fetchTasks }) => {
     >
       <span className="font-semibold">{task.title}</span>
       <button
-        onClick={handleDelete}
+        onClick={() => deleteTask(task._id)}
         className="hover:text-red-700 transition-all duration-200"
       >
         <span

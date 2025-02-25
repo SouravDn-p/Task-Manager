@@ -57,16 +57,51 @@ const Task = () => {
     if (!value) return;
 
     try {
-      await axios.post(
+      const { data } = await axios.post(
         "https://task-manager-server-side-five.vercel.app/tasks",
         {
           title: value.title,
           category: value.category,
         }
       );
-      fetchTasks();
+
+      // Update state locally instead of re-fetching
+      setTasks((prevTasks) => [...prevTasks, data]);
     } catch (err) {
       Swal.fire("Error", "Failed to add task. Please try again.", "error");
+    }
+  };
+
+  const updateTaskCategory = async (id, newCategory) => {
+    try {
+      await axios.put(
+        `https://task-manager-server-side-five.vercel.app/tasks/${id}`,
+        {
+          category: newCategory,
+        }
+      );
+
+      // Update the category in local state
+      setTasks((prevTasks) =>
+        prevTasks.map((task) =>
+          task._id === id ? { ...task, category: newCategory } : task
+        )
+      );
+    } catch (error) {
+      console.error("Failed to update task category:", error);
+    }
+  };
+
+  const deleteTask = async (id) => {
+    try {
+      await axios.delete(
+        `https://task-manager-server-side-five.vercel.app/tasks/${id}`
+      );
+
+      // Remove the task from local state
+      setTasks((prevTasks) => prevTasks.filter((task) => task._id !== id));
+    } catch (error) {
+      console.error("Failed to delete task:", error);
     }
   };
 
@@ -92,7 +127,8 @@ const Task = () => {
                 key={category}
                 category={category}
                 tasks={tasks.filter((task) => task.category === category)}
-                fetchTasks={fetchTasks}
+                updateTaskCategory={updateTaskCategory}
+                deleteTask={deleteTask}
               />
             ))}
         </div>
