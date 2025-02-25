@@ -13,8 +13,8 @@ const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [couponData, setCouponData] = useState(null);
   const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
+  const [loader, setLoader] = useState(true); // Loading state
 
-  // Function to toggle theme
   const toggleTheme = () => {
     const newTheme = theme === "light" ? "dark" : "light";
     setTheme(newTheme);
@@ -22,32 +22,59 @@ const AuthProvider = ({ children }) => {
     document.documentElement.setAttribute("data-theme", newTheme);
   };
 
-  // Apply theme on mount
   useEffect(() => {
     localStorage.setItem("theme", theme);
     document.documentElement.setAttribute("data-theme", theme);
   }, [theme]);
 
-  const createUser = (email, password) => {
-    return createUserWithEmailAndPassword(auth, email, password);
+  const createUser = async (email, password) => {
+    setLoader(true);
+    try {
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      return userCredential;
+    } finally {
+      setLoader(false);
+    }
   };
 
-  const signInUser = (email, password) => {
-    return signInWithEmailAndPassword(auth, email, password);
+  const signInUser = async (email, password) => {
+    setLoader(true);
+    try {
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      return userCredential;
+    } finally {
+      setLoader(false);
+    }
   };
 
-  const signOutUser = () => {
-    return signOut(auth);
+  const signOutUser = async () => {
+    setLoader(true);
+    try {
+      await signOut(auth);
+    } finally {
+      setLoader(false);
+    }
   };
 
   useEffect(() => {
+    setLoader(true);
     const unSubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
+      setLoader(false);
     });
 
     fetch("coupon.json")
       .then((res) => res.json())
-      .then((coupon) => setCouponData(coupon));
+      .then((coupon) => setCouponData(coupon))
+      .finally(() => setLoader(false));
 
     return () => {
       unSubscribe();
@@ -60,8 +87,10 @@ const AuthProvider = ({ children }) => {
     signOutUser,
     user,
     setUser,
-    theme, // Provide theme data
-    toggleTheme, // Provide function to toggle theme
+    theme,
+    toggleTheme,
+    loader, 
+    setLoader,
   };
 
   return (

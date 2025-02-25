@@ -23,7 +23,6 @@ const TaskColumn = ({ category, tasks, fetchTasks }) => {
     }),
   });
 
- 
   const themeStyles = {
     light: {
       bg: "bg-gray-100",
