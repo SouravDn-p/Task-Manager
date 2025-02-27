@@ -13,7 +13,7 @@ const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [couponData, setCouponData] = useState(null);
   const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
-  const [loader, setLoader] = useState(true); // Loading state
+  const [loader, setLoader] = useState(true); 
 
   const toggleTheme = () => {
     const newTheme = theme === "light" ? "dark" : "light";

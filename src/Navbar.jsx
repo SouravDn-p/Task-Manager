@@ -1,10 +1,23 @@
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { AuthContexts } from "./providers/AuthProvider";
+import {
+  FiMenu,
+  FiX,
+  FiHome,
+  FiClipboard,
+  FiLogOut,
+  FiSun,
+  FiMoon,
+  FiChevronDown,
+  FiUser,
+} from "react-icons/fi";
 
 const Navbar = () => {
   const { user, signOutUser, theme, toggleTheme } = useContext(AuthContexts);
   const navigate = useNavigate();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
 
   const handleSignOut = () => {
     signOutUser()
@@ -15,103 +28,196 @@ const Navbar = () => {
       .catch((err) => console.error("Sign-Out error:", err.message));
   };
 
-  return (
-    <div
-      className={`mx-2 md:mx-8 mt-4 rounded-lg ${
-        theme === "light" ? "bg-white text-black" : "bg-purple-600 text-white"
-      }`}
+  const NavItem = ({ to, children, onClick = () => {} }) => (
+    <NavLink
+      to={to}
+      onClick={onClick}
+      className={({ isActive }) =>
+        `relative px-4 py-2 rounded-lg transition-all duration-200
+        hover:bg-gray-100 dark:hover:bg-gray-800
+        flex items-center gap-2
+        ${isActive ? "text-blue-600 dark:text-blue-400 font-medium" : ""}
+        after:content-[''] after:absolute after:bottom-0 after:left-0
+        after:w-full after:h-0.5 after:bg-blue-600 dark:after:bg-blue-400
+        after:scale-x-0 hover:after:scale-x-100 after:transition-transform
+        ${isActive ? "after:scale-x-100" : ""}`
+      }
     >
+      {children}
+    </NavLink>
+  );
+
+  return (
+    <div className="sticky top-4 z-50 mx-2 md:mx-8">
       <div
-        className={`navbar rounded-lg px-4 ${
-          theme === "light" ? "bg-gray-100" : "bg-base-100"
-        }`}
+        className={`rounded-xl shadow-lg transition-all duration-300 border border-gray-200 dark:border-gray-800
+          ${
+            theme === "light"
+              ? "bg-white/90 text-gray-900"
+              : "bg-gray-900/90 text-gray-100"
+          }`}
+        style={{
+          backdropFilter: "blur(12px)",
+          WebkitBackdropFilter: "blur(12px)",
+        }}
       >
-        <div className="navbar-start">
-          <NavLink
-            to="/"
-            className={`text-lg md:text-2xl font-bold ${
-              theme === "light" ? "text-black" : "text-white"
-            }`}
-          >
-            Task Manager
-          </NavLink>
-        </div>
-
-        <div className="hidden md:flex navbar-center gap-5">
-          <NavLink
-            to="/"
-            className={`hover:text-gray-500 ${
-              theme === "light" ? "text-black" : "text-white"
-            }`}
-          >
-            Home
-          </NavLink>
-          {user && (
+        <nav className="px-4 py-3">
+          <div className="flex items-center justify-between">
+            {/* Logo */}
             <NavLink
-              to="/task"
-              className={`hover:text-gray-500 ${
-                theme === "light" ? "text-black" : "text-white"
-              }`}
+              to="/"
+              className="text-xl md:text-2xl font-bold"
+              style={{
+                background: "linear-gradient(to right, #3b82f6, #8b5cf6)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+              }}
             >
-              Tasks
+              Task Manager
             </NavLink>
-          )}
-        </div>
 
-        <div className="navbar-end flex items-center gap-4">
-          {/* Theme Toggle Button */}
-          <button onClick={toggleTheme} className="btn btn-sm btn-outline">
-            {theme === "light" ? "🌙 Dark" : "☀️ Light"}
-          </button>
-
-          {/* Authentication Links */}
-          {!user ? (
-            <div className="flex gap-4">
-              <NavLink to="/login" className="btn btn-primary btn-sm">
-                Login
-              </NavLink>
-              <NavLink to="/register" className="btn btn-secondary btn-sm">
-                Register
-              </NavLink>
+            {/* Desktop Navigation */}
+            <div className="hidden md:flex items-center gap-2">
+              <NavItem to="/">
+                <FiHome className="w-4 h-4" />
+                <span>Home</span>
+              </NavItem>
+              {user && (
+                <NavItem to="/task">
+                  <FiClipboard className="w-4 h-4" />
+                  <span>Tasks</span>
+                </NavItem>
+              )}
             </div>
-          ) : (
-            <div className="dropdown dropdown-end">
-              <label
-                tabIndex={0}
-                className="cursor-pointer flex items-center gap-2"
+
+            {/* Theme Toggle & Authentication */}
+            <div className="flex items-center gap-3">
+              <button
+                onClick={toggleTheme}
+                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
               >
-                <div className="avatar">
-                  <div className="w-10 rounded-full">
-                    <img
-                      src={user.photoURL || "https://via.placeholder.com/40"}
-                      alt="User"
-                    />
-                  </div>
-                </div>
-              </label>
-              <ul
-                tabIndex={0}
-                className={`menu menu-compact dropdown-content mt-3 p-2 shadow rounded-box w-52 ${
-                  theme === "light"
-                    ? "bg-gray-100 text-black"
-                    : "bg-base-100 text-white"
-                }`}
-              >
-                <li className="font-semibold text-center">
-                  {user.displayName || "User"}
-                </li>
-                <li>
+                {theme === "light" ? (
+                  <FiMoon className="w-5 h-5" />
+                ) : (
+                  <FiSun className="w-5 h-5" />
+                )}
+              </button>
+
+              {!user ? (
+                <div className="hidden md:flex items-center gap-2">
                   <button
-                    onClick={handleSignOut}
-                    className="btn btn-error btn-sm btn-block"
+                    onClick={() => navigate("/login")}
+                    className="px-4 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                   >
-                    Logout
+                    Login
                   </button>
-                </li>
-              </ul>
+                  <button
+                    onClick={() => navigate("/register")}
+                    className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white transition-colors"
+                  >
+                    Register
+                  </button>
+                </div>
+              ) : (
+                <div className="relative">
+                  <button
+                    onClick={() => setShowDropdown(!showDropdown)}
+                    className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                  >
+                    <div className="relative">
+                      {user.photoURL ? (
+                        <img
+                          src={user.photoURL || "/placeholder.svg"}
+                          alt={user.displayName || "User"}
+                          className="w-8 h-8 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
+                          <FiUser className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                        </div>
+                      )}
+                      <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-white dark:border-gray-900" />
+                    </div>
+                    <FiChevronDown className="w-4 h-4" />
+                  </button>
+
+                  {/* User Dropdown */}
+                  {showDropdown && (
+                    <div className="absolute right-0 mt-2 w-56 rounded-lg bg-white dark:bg-gray-800 shadow-lg border border-gray-200 dark:border-gray-700 py-2">
+                      <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
+                        <p className="font-medium">
+                          {user.displayName || "User"}
+                        </p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
+                          {user.email}
+                        </p>
+                      </div>
+                      <button
+                        onClick={handleSignOut}
+                        className="w-full px-4 py-2 text-left text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+                      >
+                        <FiLogOut className="w-4 h-4" />
+                        Logout
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Mobile Menu Button */}
+              <button
+                className="md:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+              >
+                {isMenuOpen ? (
+                  <FiX className="w-5 h-5" />
+                ) : (
+                  <FiMenu className="w-5 h-5" />
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* Mobile Menu */}
+          {isMenuOpen && (
+            <div className="md:hidden pt-4 pb-2">
+              <div className="flex flex-col gap-1">
+                <NavItem to="/" onClick={() => setIsMenuOpen(false)}>
+                  <FiHome className="w-4 h-4" />
+                  <span>Home</span>
+                </NavItem>
+                {user && (
+                  <NavItem to="/task" onClick={() => setIsMenuOpen(false)}>
+                    <FiClipboard className="w-4 h-4" />
+                    <span>Tasks</span>
+                  </NavItem>
+                )}
+                {!user && (
+                  <div className="flex flex-col gap-2 p-2">
+                    <button
+                      onClick={() => {
+                        navigate("/login");
+                        setIsMenuOpen(false);
+                      }}
+                      className="w-full px-4 py-2 text-left rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                    >
+                      Login
+                    </button>
+                    <button
+                      onClick={() => {
+                        navigate("/register");
+                        setIsMenuOpen(false);
+                      }}
+                      className="w-full px-4 py-2 text-left rounded-lg bg-blue-600 hover:bg-blue-700 text-white transition-colors"
+                    >
+                      Register
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           )}
-        </div>
+        </nav>
       </div>
     </div>
   );
