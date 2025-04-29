@@ -4,14 +4,7 @@ import { useContext } from "react";
 import { useDrag } from "react-dnd";
 import { ItemTypes } from "./Constants";
 import { AuthContexts } from "../providers/AuthProvider";
-import {
-  Calendar,
-  Clock,
-  Tag,
-  Trash2,
-  CheckCircle2,
-  AlertCircle,
-} from "lucide-react";
+import { Calendar, Trash2, CheckCircle2, AlertCircle } from "lucide-react";
 import { cn } from "./lib/utils";
 
 const formatDate = (date) => {

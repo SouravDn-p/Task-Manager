@@ -21,7 +21,7 @@ const Task = () => {
 
   useEffect(() => {
     if (user?.email) fetchTasks();
-  }, [user?.email, setTasks]);
+  }, [user?.email]);
 
   const fetchTasks = async () => {
     setLoading(true);
@@ -32,9 +32,23 @@ const Task = () => {
       );
       setTasks(data);
     } catch (err) {
+      console.error("Error fetching tasks:", err);
       setError("Failed to fetch tasks. Please try again later.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const logActivity = async (type, title) => {
+    try {
+      await axios.post("https://rendingserver.onrender.com/activity", {
+        email: user.email,
+        type,
+        title,
+        time: new Date().toISOString(),
+      });
+    } catch (error) {
+      console.error("Failed to log activity:", error);
     }
   };
 
@@ -42,15 +56,15 @@ const Task = () => {
     const { value } = await Swal.fire({
       title: "Add New Task",
       html: `
-      <input id="swal-input-title" class="swal2-input" placeholder="Enter Task Title" maxlength="50">
-      <input id="swal-input-submission" type="date" class="swal2-input">
-      <select id="swal-input-category" class="swal2-select">
-        ${categories
-          .map((cat) => `<option value="${cat}">${cat}</option>`)
-          .join("")}
-      </select>
-      <input id="swal-input-completeTime" type="time" class="swal2-input" style="display:none;">
-    `,
+        <input id="swal-input-title" class="swal2-input" placeholder="Enter Task Title" maxlength="50">
+        <input id="swal-input-submission" type="date" class="swal2-input">
+        <select id="swal-input-category" class="swal2-select">
+          ${categories
+            .map((cat) => `<option value="${cat}">${cat}</option>`)
+            .join("")}
+        </select>
+        <input id="swal-input-completeTime" type="time" class="swal2-input" style="display:none;">
+      `,
       showCancelButton: true,
       didOpen: () => {
         const categorySelect = document.getElementById("swal-input-category");
@@ -61,7 +75,7 @@ const Task = () => {
         categorySelect.onchange = () => {
           completeTimeInput.style.display =
             categorySelect.value === "Done" ? "block" : "none";
-          if (categorySelect.value !== "Done") completeTimeInput.value = ""; // Reset if hidden
+          if (categorySelect.value !== "Done") completeTimeInput.value = "";
         };
       },
       preConfirm: () => {
@@ -103,59 +117,74 @@ const Task = () => {
     };
 
     try {
-      const { data } = await axios.post(
-        "https://rendingserver.onrender.com/tasks",
-        newTask
-      );
-
-      // Fetch updated tasks to ensure we get the newly created task with its _id
+      await axios.post("https://rendingserver.onrender.com/tasks", newTask);
       fetchTasks();
-
-      // Show success message
-      Swal.fire({
-        title: "Success!",
-        text: "Task added successfully.",
-        icon: "success",
-        timer: 2000,
-        showConfirmButton: false,
-      });
+      logActivity("create", newTask.title);
+      Swal.fire("Success!", "Task added successfully.", "success");
     } catch (err) {
+      console.error("Error adding task:", err);
       Swal.fire("Error", "Failed to add task. Please try again.", "error");
     }
   };
 
+  const updateTaskCategory = useCallback(
+    async (id, newCategory) => {
+      try {
+        const updatedTask = {
+          category: newCategory,
+          completedAt: newCategory === "Done" ? new Date().toISOString() : null,
+        };
 
-  const updateTaskCategory = useCallback(async (id, newCategory) => {
-    try {
-      const updatedTask = {
-        category: newCategory,
-        completedAt: newCategory === "Done" ? new Date().toISOString() : null,
-      };
+        await axios.put(
+          `https://rendingserver.onrender.com/tasks/${id}`,
+          updatedTask
+        );
 
-      await axios.put(
-        `https://rendingserver.onrender.com/tasks/${id}`,
-        updatedTask
-      );
-      setTasks((prevTasks) =>
-        prevTasks.map((task) =>
-          task._id === id ? { ...task, ...updatedTask } : task
-        )
-      );
-    } catch (error) {
-      console.error("Failed to update task category:", error);
-      Swal.fire("Error", "Could not update task category.", "error");
-    }
-  }, []);
+        setTasks((prevTasks) =>
+          prevTasks.map((task) =>
+            task._id === id ? { ...task, ...updatedTask } : task
+          )
+        );
 
-  const deleteTask = useCallback(async (id) => {
-    try {
-      await axios.delete(`https://rendingserver.onrender.com/tasks/${id}`);
-      setTasks((prevTasks) => prevTasks.filter((task) => task._id !== id));
-    } catch (error) {
-      console.error("Failed to delete task:", error);
-      Swal.fire("Error", "Could not delete task.", "error");
-    }
-  }, []);
+        const taskTitle =
+          tasks.find((task) => task._id === id)?.title || "Unknown Task";
+        logActivity("update", taskTitle);
+      } catch (error) {
+        console.error("Error updating task category:", error);
+        Swal.fire("Error", "Could not update task category.", "error");
+      }
+    },
+    [tasks]
+  );
+
+  const deleteTask = useCallback(
+    async (id) => {
+      const confirmDelete = await Swal.fire({
+        title: "Are you sure?",
+        text: "This task will be permanently deleted.",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Yes, delete it!",
+        cancelButtonText: "Cancel",
+      });
+
+      if (!confirmDelete.isConfirmed) return;
+
+      try {
+        await axios.delete(`https://rendingserver.onrender.com/tasks/${id}`);
+        setTasks((prevTasks) => prevTasks.filter((task) => task._id !== id));
+
+        const taskTitle =
+          tasks.find((task) => task._id === id)?.title || "Unknown Task";
+        logActivity("delete", taskTitle);
+        Swal.fire("Deleted!", "Your task has been deleted.", "success");
+      } catch (error) {
+        console.error("Error deleting task:", error);
+        Swal.fire("Error", "Could not delete task.", "error");
+      }
+    },
+    [tasks]
+  );
 
   return (
     <DndProvider backend={HTML5Backend}>
@@ -168,7 +197,11 @@ const Task = () => {
           Add Task
         </button>
 
-        {loading && <p>Loading tasks...</p>}
+        {loading && (
+          <div className="flex justify-center items-center">
+            <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        )}
         {error && <p className="text-red-500">{error}</p>}
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-black">
