@@ -11,9 +11,8 @@ export const AuthContexts = createContext(null);
 
 const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [couponData, setCouponData] = useState(null);
   const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
-  const [loader, setLoader] = useState(true); 
+  const [loader, setLoader] = useState(true);
 
   const toggleTheme = () => {
     const newTheme = theme === "light" ? "dark" : "light";
@@ -71,11 +70,6 @@ const AuthProvider = ({ children }) => {
       setLoader(false);
     });
 
-    fetch("coupon.json")
-      .then((res) => res.json())
-      .then((coupon) => setCouponData(coupon))
-      .finally(() => setLoader(false));
-
     return () => {
       unSubscribe();
     };
@@ -89,7 +83,7 @@ const AuthProvider = ({ children }) => {
     setUser,
     theme,
     toggleTheme,
-    loader, 
+    loader,
     setLoader,
   };
 
