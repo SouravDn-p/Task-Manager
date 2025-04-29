@@ -1,6 +1,5 @@
 import { useContext, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { AuthContexts } from "./providers/AuthProvider";
 import {
   FiMenu,
   FiX,
@@ -11,7 +10,9 @@ import {
   FiMoon,
   FiChevronDown,
   FiUser,
+  FiActivity,
 } from "react-icons/fi";
+import { AuthContexts } from "./providers/AuthProvider";
 
 const Navbar = () => {
   const { user, signOutUser, theme, toggleTheme } = useContext(AuthContexts);
@@ -28,6 +29,7 @@ const Navbar = () => {
       .catch((err) => console.error("Sign-Out error:", err.message));
   };
 
+  // eslint-disable-next-line react/prop-types
   const NavItem = ({ to, children, onClick = () => {} }) => (
     <NavLink
       to={to}
@@ -63,7 +65,6 @@ const Navbar = () => {
       >
         <nav className="px-4 py-3">
           <div className="flex items-center justify-between">
-            {/* Logo */}
             <NavLink
               to="/"
               className="text-xl md:text-2xl font-bold"
@@ -76,21 +77,25 @@ const Navbar = () => {
               Task Manager
             </NavLink>
 
-            {/* Desktop Navigation */}
             <div className="hidden md:flex items-center gap-2">
               <NavItem to="/">
                 <FiHome className="w-4 h-4" />
                 <span>Home</span>
               </NavItem>
               {user && (
-                <NavItem to="/task">
-                  <FiClipboard className="w-4 h-4" />
-                  <span>Tasks</span>
-                </NavItem>
+                <div className="flex">
+                  <NavItem to="/task">
+                    <FiClipboard className="w-4 h-4" />
+                    <span>Tasks</span>
+                  </NavItem>
+                  <NavItem to="/activity">
+                    <FiActivity className="w-4 h-4" />
+                    <span>Activity</span>
+                  </NavItem>
+                </div>
               )}
             </div>
 
-            {/* Theme Toggle & Authentication */}
             <div className="flex items-center gap-3">
               <button
                 onClick={toggleTheme}
@@ -141,7 +146,6 @@ const Navbar = () => {
                     <FiChevronDown className="w-4 h-4" />
                   </button>
 
-                  {/* User Dropdown */}
                   {showDropdown && (
                     <div className="absolute right-0 mt-2 w-56 rounded-lg bg-white dark:bg-gray-800 shadow-lg border border-gray-200 dark:border-gray-700 py-2">
                       <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
@@ -164,7 +168,6 @@ const Navbar = () => {
                 </div>
               )}
 
-              {/* Mobile Menu Button */}
               <button
                 className="md:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -178,7 +181,6 @@ const Navbar = () => {
             </div>
           </div>
 
-          {/* Mobile Menu */}
           {isMenuOpen && (
             <div className="md:hidden pt-4 pb-2">
               <div className="flex flex-col gap-1">
@@ -187,10 +189,16 @@ const Navbar = () => {
                   <span>Home</span>
                 </NavItem>
                 {user && (
-                  <NavItem to="/task" onClick={() => setIsMenuOpen(false)}>
-                    <FiClipboard className="w-4 h-4" />
-                    <span>Tasks</span>
-                  </NavItem>
+                  <div>
+                    <NavItem to="/task">
+                      <FiClipboard className="w-4 h-4" />
+                      <span>Tasks</span>
+                    </NavItem>
+                    <NavItem to="/activity">
+                      <FiActivity className="w-4 h-4" />
+                      <span>Activity</span>
+                    </NavItem>
+                  </div>
                 )}
                 {!user && (
                   <div className="flex flex-col gap-2 p-2">
